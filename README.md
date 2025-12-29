@@ -628,7 +628,7 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 
 ## 📞 Support
 
-For support, email support@schoolbustracker.com or create an issue in the repository.
+For support, email support@tirthgoyani.me or create an issue in the repository.
 
 ---
 
