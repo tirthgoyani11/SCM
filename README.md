@@ -2,9 +2,12 @@
 
 A comprehensive real-time school bus tracking solution featuring GPS tracking, live video streaming, push notifications, and multi-role access control for parents, drivers, and administrators.
 
+**🔥 NEW: Driver's mobile phone acts as an IoT Edge Device for real-time telemetry, motion detection, and live video streaming!**
+
 ## 📋 Table of Contents
 
 - [Features](#-features)
+- [IoT Edge Device](#-iot-edge-device)
 - [Architecture](#-architecture)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
@@ -36,6 +39,157 @@ A comprehensive real-time school bus tracking solution featuring GPS tracking, l
 - 👤 **User Management** - Manage parents, drivers, and admins
 - 🚌 **Fleet Management** - Add/edit buses, assign drivers
 - 📈 **Reports** - Generate trip and performance reports
+
+## 📡 IoT Edge Device
+
+The driver's smartphone functions as a powerful **IoT Edge Device**, providing:
+
+### Real-time Telemetry
+- **GPS Location** - High-accuracy location updates every 3 seconds
+- **Speed Monitoring** - Real-time speed tracking with speeding alerts
+- **Heading/Direction** - Vehicle orientation for accurate map display
+- **Altitude/Accuracy** - Detailed location metadata
+
+### Motion Detection (Accelerometer + Gyroscope)
+- **Harsh Braking Detection** - Alerts when driver brakes suddenly
+- **Harsh Acceleration** - Detects aggressive acceleration
+- **Sharp Turn Detection** - Identifies dangerous turning maneuvers
+- **Driving Score** - Calculate driver safety scores
+
+### Device Health Monitoring
+- **Battery Level** - Monitor device battery with low-battery alerts
+- **Network Status** - Track online/offline connectivity
+- **Automatic Data Sync** - Buffer data offline, sync when connected
+
+### Live Video Streaming (WebRTC)
+- **Dashcam Mode** - Stream rear camera as dashcam
+- **Multi-viewer Support** - Multiple parents can watch simultaneously
+- **Adaptive Quality** - Adjusts video quality based on network
+- **Audio Toggle** - Optional audio streaming
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   DRIVER'S PHONE (IoT Edge Device)              │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                    SENSORS & DATA                         │   │
+│  │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐      │   │
+│  │  │   GPS   │  │ Accel.  │  │  Gyro   │  │ Camera  │      │   │
+│  │  │ (3s)    │  │ (50Hz)  │  │ (50Hz)  │  │ (WebRTC)│      │   │
+│  │  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘      │   │
+│  │       │            │            │            │            │   │
+│  │       └──────┬─────┴────────────┴────────────┘            │   │
+│  │              │                                            │   │
+│  │       ┌──────┴──────┐                                     │   │
+│  │       │  IoT Edge   │  ← Motion Analysis                  │   │
+│  │       │  Service    │  ← Event Detection                  │   │
+│  │       │             │  ← Offline Buffering                │   │
+│  │       └──────┬──────┘                                     │   │
+│  │              │                                            │   │
+│  └──────────────┼────────────────────────────────────────────┘   │
+│                 │                                                │
+│          Socket.IO + WebRTC                                      │
+│                 │                                                │
+└─────────────────┼────────────────────────────────────────────────┘
+                  ▼
+           ┌──────────────┐
+           │    CLOUD     │
+           │   BACKEND    │
+           └──────────────┘
+```
+
+## 🔌 Flexible Input Sources
+
+The system supports **multiple input sources** for both GPS tracking and live video - choose what works best for your fleet!
+
+### 📍 GPS Sources (Pluggable)
+
+| Source | Description | Use Case |
+|--------|-------------|----------|
+| **📱 Phone GPS** | Built-in smartphone GPS | Default, no extra hardware |
+| **📡 Bluetooth GPS** | External Bluetooth GPS receiver | Higher accuracy |
+| **🚗 OBD-II Tracker** | Vehicle diagnostic port GPS | Vehicle-integrated tracking |
+| **☁️ Fleet Tracker** | Dedicated GPS tracker via API | Enterprise fleet management |
+| **🔌 USB GPS** | USB GPS dongle (tablets) | Fixed installation |
+
+### 📹 Video Sources (Pluggable)
+
+| Source | Description | Use Case |
+|--------|-------------|----------|
+| **📱 Phone Camera** | Built-in rear/front camera | Default, no extra hardware |
+| **🎥 RTSP Dashcam** | External dashcam via RTSP | Professional dashcam |
+| **📷 CCTV Camera** | Bus CCTV via RTSP/RTMP | Existing CCTV integration |
+| **🌐 IP Camera** | IP camera via HTTP/MJPEG | Network cameras |
+
+### Configuration Example
+
+```dart
+// Add external dashcam
+await telemetryService.addRtspCamera(
+  rtspUrl: 'rtsp://192.168.1.100:554/stream1',
+  name: 'Front Dashcam',
+  username: 'admin',
+  password: 'password',
+);
+
+// Add Bluetooth GPS
+await telemetryService.addExternalGps(
+  type: 'bluetooth',
+  deviceId: 'XX:XX:XX:XX:XX:XX',
+  deviceName: 'Garmin GLO 2',
+);
+
+// Add fleet tracker
+await telemetryService.addExternalGps(
+  type: 'fleet',
+  deviceId: 'TRACKER-001',
+  apiEndpoint: 'https://api.fleettracker.com',
+  apiKey: 'your-api-key',
+);
+```
+
+### Architecture: Multiple Input Sources
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    INPUT SOURCES (PLUGGABLE)                     │
+│                                                                  │
+│  GPS SOURCES                      VIDEO SOURCES                  │
+│  ┌──────────┐                     ┌──────────┐                  │
+│  │📱 Phone  │ ←─ Default          │📱 Phone  │ ←─ Default       │
+│  │   GPS    │                     │  Camera  │                  │
+│  └────┬─────┘                     └────┬─────┘                  │
+│       │                                │                         │
+│  ┌────┴─────┐                     ┌────┴─────┐                  │
+│  │📡Bluetooth│ ←─ Optional        │🎥 RTSP   │ ←─ Optional      │
+│  │   GPS    │                     │ Dashcam  │                  │
+│  └────┬─────┘                     └────┬─────┘                  │
+│       │                                │                         │
+│  ┌────┴─────┐                     ┌────┴─────┐                  │
+│  │🚗 OBD-II │ ←─ Optional         │📷 CCTV   │ ←─ Optional      │
+│  │ Tracker  │                     │ Camera   │                  │
+│  └────┬─────┘                     └────┴─────┘                  │
+│       │                                │                         │
+│  ┌────┴─────┐                          │                         │
+│  │☁️ Fleet  │ ←─ Optional              │                         │
+│  │ Tracker  │                          │                         │
+│  └────┬─────┘                          │                         │
+│       │                                │                         │
+│       └────────────┬───────────────────┘                         │
+│                    │                                             │
+│            ┌───────┴───────┐                                     │
+│            │   UNIFIED     │                                     │
+│            │  TELEMETRY    │ ←─ Single Interface                 │
+│            │   SERVICE     │                                     │
+│            └───────┬───────┘                                     │
+│                    │                                             │
+└────────────────────┼─────────────────────────────────────────────┘
+                     │
+                     ▼
+              ┌──────────────┐
+              │   BACKEND    │
+              │   SERVER     │
+              └──────────────┘
+```
 
 ## 🏗️ Architecture
 

@@ -47,6 +47,19 @@ dependencies:
   permission_handler: ^11.1.0
   wakelock: ^0.6.2
   vibration: ^1.8.4
+  
+  # IoT Edge Device Capabilities
+  sensors_plus: ^4.0.2            # Accelerometer, gyroscope for motion detection
+  battery_plus: ^5.0.2            # Battery monitoring
+  connectivity_plus: ^5.0.2       # Network connectivity monitoring
+  flutter_background_service: ^5.0.5  # Background GPS tracking
+  device_info_plus: ^9.1.1        # Device information
+  
+  # External Device Support
+  http: ^1.1.0                    # HTTP client for IP cameras
+  get_it: ^7.6.4                  # Dependency injection
+  # flutter_blue_plus: ^1.31.0   # Bluetooth GPS (uncomment when needed)
+  # flutter_vlc_player: ^7.4.1   # RTSP video playback (uncomment when needed)
 
 dev_dependencies:
   flutter_test:

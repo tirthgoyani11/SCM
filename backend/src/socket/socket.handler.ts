@@ -3,6 +3,7 @@ import { Server } from 'http';
 import jwt from 'jsonwebtoken';
 import { Bus, Trip, User } from '../models';
 import { logger } from '../utils/logger';
+import { IoTEdgeHandler } from './iot.handler';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -31,6 +32,9 @@ export const initializeSocketServer = (server: Server): SocketServer => {
     }
   });
 
+  // Initialize IoT Edge Handler
+  const iotHandler = new IoTEdgeHandler(io);
+
   // Authentication middleware
   io.use(async (socket: AuthenticatedSocket, next) => {
     try {
@@ -55,6 +59,9 @@ export const initializeSocketServer = (server: Server): SocketServer => {
 
   io.on('connection', (socket: AuthenticatedSocket) => {
     logger.info(`Socket connected: ${socket.id} (User: ${socket.userId}, Role: ${socket.userRole})`);
+
+    // Initialize IoT Edge handlers for this socket
+    iotHandler.initializeHandlers(socket);
 
     // Join role-based rooms
     if (socket.userRole) {
